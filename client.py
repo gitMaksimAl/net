@@ -1,8 +1,8 @@
 import socket
-import sys
+from sys import stderr, argv
 import threading
 
-server = ('localhost', 12000)
+SCRIPT, HOST, PORT = argv
 nickname = input('Please enter your nickname: ')
 
 
@@ -17,8 +17,8 @@ def recv_message() -> None:
         except (IOError, InterruptedError, UnicodeWarning) as err:
             sock.close()
             print('Some issue. Connection closed.')
-            print(err, file=sys.stderr)
-            sys.stderr.close()
+            print(err, file=stderr)
+            stderr.close()
             break
 
 
@@ -30,16 +30,17 @@ def send_message() -> None:
         except (IOError, InterruptedError, KeyboardInterrupt) as err:
             sock.close()
             print('Connection closed by client side.')
-            print(err, file=sys.stderr)
-            sys.stderr.close()
+            print(err, file=stderr)
+            stderr.close()
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    sock.connect(server)
+    sock.connect((HOST, int(PORT)))
     print('Connected.')
-except ConnectionError:
-    print(f'Cant connect to remote host: {server}')
+except ConnectionError as err:
+    print(f'Cant connect to remote host: {(HOST, PORT)}')
+    print(err, file=stderr)
     exit(1)
 
 in_stream = threading.Thread(target=recv_message, name='in_stream')
